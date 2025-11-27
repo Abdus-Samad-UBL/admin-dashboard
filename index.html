@@ -4,90 +4,324 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UBL Admin Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #111827;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        .header {
+            margin-bottom: 32px;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            font-weight: bold;
+            color: #60a5fa;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #9ca3af;
+            margin-top: 8px;
+        }
+
+        .header-right {
+            text-align: right;
+        }
+
+        .header-right p {
+            font-size: 14px;
+            color: #9ca3af;
+            margin-bottom: 8px;
+        }
+
+        .header-right span {
+            color: #60a5fa;
+            font-weight: 600;
+        }
+
+        .refresh-btn {
+            margin-top: 8px;
+            background-color: #2563eb;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .refresh-btn:hover {
+            background-color: #1d4ed8;
+        }
+
+        .loading-msg {
+            background-color: #1e3a8a;
+            border: 1px solid #3b82f6;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 32px;
+            color: #93c5fd;
+        }
+
+        .loading-msg.hidden {
+            display: none;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            padding: 24px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+        }
+
+        .stat-card.present {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        }
+
+        .stat-card.late {
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+        }
+
+        .stat-card.sick {
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+        }
+
+        .stat-card.annual {
+            background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+        }
+
+        .stat-card.proxy {
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+        }
+
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .table-wrapper {
+            background-color: #1f2937;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 32px;
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px;
+            border-bottom: 1px solid #374151;
+        }
+
+        .table-header h2 {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .export-btn {
+            background-color: #16a34a;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .export-btn:hover {
+            background-color: #15803d;
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        thead {
+            background-color: #374151;
+            border-bottom: 1px solid #4b5563;
+        }
+
+        th {
+            padding: 12px 24px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px 24px;
+            border-bottom: 1px solid #374151;
+        }
+
+        tbody tr:hover {
+            background-color: #374151;
+            transition: background-color 0.2s;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-present {
+            background-color: #064e3b;
+            color: #86efac;
+        }
+
+        .status-late {
+            background-color: #78350f;
+            color: #fef08a;
+        }
+
+        .status-other {
+            background-color: #374151;
+            color: #d1d5db;
+        }
+
+        .proxy-ok {
+            color: #4ade80;
+        }
+
+        .proxy-alert {
+            color: #f87171;
+        }
+
+        .empty-msg {
+            text-align: center;
+            padding: 32px;
+            color: #9ca3af;
+        }
+
+        .error-msg {
+            color: #f87171;
+        }
+    </style>
 </head>
-<body class="bg-gray-900 text-white">
-    <div class="min-h-screen p-6">
-        <div class="max-w-7xl mx-auto">
-            <!-- Header -->
-            <div class="mb-8">
-                <div class="flex items-center justify-between mb-4">
-                    <div>
-                        <h1 class="text-4xl font-bold text-blue-400">📊 Admin Dashboard</h1>
-                        <p class="text-gray-400 mt-2">L&D Department Attendance Monitor</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-sm text-gray-400">Last updated: <span class="text-blue-400 font-semibold" id="lastUpdated">Loading...</span></p>
-                        <button onclick="fetchDataFromSheets()" class="mt-2 bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-semibold">
-                            🔄 Refresh
-                        </button>
-                    </div>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-top">
+                <div>
+                    <h1>📊 Admin Dashboard</h1>
+                    <p>L&D Department Attendance Monitor</p>
+                </div>
+                <div class="header-right">
+                    <p>Last updated: <span id="lastUpdated">Loading...</span></p>
+                    <button class="refresh-btn" onclick="fetchDataFromSheets()">🔄 Refresh</button>
                 </div>
             </div>
+        </div>
 
-            <!-- Loading Message -->
-            <div id="loadingMsg" class="bg-blue-900 border border-blue-500 rounded-lg p-4 mb-8">
-                <p class="text-blue-200">⏳ Loading data from Google Sheets... Please wait.</p>
-                <p class="text-xs text-blue-300 mt-2">If this takes more than 10 seconds, the sheet may not be publicly shared.</p>
+        <!-- Loading Message -->
+        <div id="loadingMsg" class="loading-msg">
+            <p>⏳ Loading data from Google Sheets... Please wait.</p>
+            <p style="font-size: 12px; margin-top: 8px;">If this takes more than 10 seconds, the sheet may not be publicly shared.</p>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Total Submitted</div>
+                <div class="stat-value" id="stat-total">0</div>
             </div>
-
-            <!-- Key Stats -->
-            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8" id="statsContainer">
-                <div class="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg p-6">
-                    <p class="text-blue-200 text-sm">Total Submitted</p>
-                    <p class="text-3xl font-bold mt-2" id="stat-total">0</p>
-                </div>
-                <div class="bg-gradient-to-br from-green-600 to-green-700 rounded-lg p-6">
-                    <p class="text-green-200 text-sm">Present</p>
-                    <p class="text-3xl font-bold mt-2" id="stat-present">0</p>
-                </div>
-                <div class="bg-gradient-to-br from-yellow-600 to-yellow-700 rounded-lg p-6">
-                    <p class="text-yellow-200 text-sm">Late</p>
-                    <p class="text-3xl font-bold mt-2" id="stat-late">0</p>
-                </div>
-                <div class="bg-gradient-to-br from-purple-600 to-purple-700 rounded-lg p-6">
-                    <p class="text-purple-200 text-sm">Sick/Personal</p>
-                    <p class="text-3xl font-bold mt-2" id="stat-sick">0</p>
-                </div>
-                <div class="bg-gradient-to-br from-indigo-600 to-indigo-700 rounded-lg p-6">
-                    <p class="text-indigo-200 text-sm">Annual Leave</p>
-                    <p class="text-3xl font-bold mt-2" id="stat-annual">0</p>
-                </div>
-                <div class="bg-gradient-to-br from-red-600 to-red-700 rounded-lg p-6">
-                    <p class="text-red-200 text-sm">Proxy Alerts</p>
-                    <p class="text-3xl font-bold mt-2" id="stat-proxies">0</p>
-                </div>
+            <div class="stat-card present">
+                <div class="stat-label">Present</div>
+                <div class="stat-value" id="stat-present">0</div>
             </div>
+            <div class="stat-card late">
+                <div class="stat-label">Late</div>
+                <div class="stat-value" id="stat-late">0</div>
+            </div>
+            <div class="stat-card sick">
+                <div class="stat-label">Sick/Personal</div>
+                <div class="stat-value" id="stat-sick">0</div>
+            </div>
+            <div class="stat-card annual">
+                <div class="stat-label">Annual Leave</div>
+                <div class="stat-value" id="stat-annual">0</div>
+            </div>
+            <div class="stat-card proxy">
+                <div class="stat-label">Proxy Alerts</div>
+                <div class="stat-value" id="stat-proxies">0</div>
+            </div>
+        </div>
 
-            <!-- Detailed Table -->
-            <div class="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
-                <div class="flex items-center justify-between p-6 border-b border-gray-700">
-                    <h2 class="text-xl font-bold">Today's Attendance Records</h2>
-                    <button onclick="exportCSV()" class="bg-green-600 hover:bg-green-700 px-4 py-2 rounded-lg text-sm font-semibold">
-                        📥 Export CSV
-                    </button>
-                </div>
-                
-                <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
-                        <thead class="bg-gray-700 border-b border-gray-600">
-                            <tr>
-                                <th class="px-6 py-3 text-left">Cluster</th>
-                                <th class="px-6 py-3 text-left">Name</th>
-                                <th class="px-6 py-3 text-left">Status</th>
-                                <th class="px-6 py-3 text-left">Time</th>
-                                <th class="px-6 py-3 text-left">Location</th>
-                                <th class="px-6 py-3 text-left">Proxy Alert</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody">
-                            <tr>
-                                <td colspan="6" class="px-6 py-8 text-center text-gray-500">Loading data...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+        <!-- Table -->
+        <div class="table-wrapper">
+            <div class="table-header">
+                <h2>Today's Attendance Records</h2>
+                <button class="export-btn" onclick="exportCSV()">📥 Export CSV</button>
+            </div>
+            
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cluster</th>
+                            <th>Name</th>
+                            <th>Status</th>
+                            <th>Time</th>
+                            <th>Location</th>
+                            <th>Proxy Alert</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <tr>
+                            <td colspan="6" class="empty-msg">Loading data...</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -118,17 +352,17 @@
                 }));
 
                 console.log('Total rows loaded:', allData.length);
-                document.getElementById('loadingMsg').style.display = 'none';
+                document.getElementById('loadingMsg').classList.add('hidden');
                 document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
                 updateDashboard();
             } catch (error) {
                 console.error('Error processing data:', error);
-                document.getElementById('tableBody').innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-red-500">Error: ' + error.message + '</td></tr>';
+                document.getElementById('tableBody').innerHTML = '<tr><td colspan="6" class="empty-msg error-msg">Error: ' + error.message + '</td></tr>';
             }
         }
 
         function fetchDataFromSheets() {
-            console.log('Fetching data from:', SHEET_URL);
+            console.log('Fetching data from Google Sheets...');
             
             // Remove old script if exists
             const oldScript = document.querySelector('script[src*="gviz/tq"]');
@@ -139,7 +373,7 @@
             script.src = SHEET_URL;
             script.onerror = function() {
                 console.error('Failed to load script');
-                document.getElementById('tableBody').innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-red-500">❌ Failed to load data. Make sure Google Sheet is publicly shared.</td></tr>';
+                document.getElementById('tableBody').innerHTML = '<tr><td colspan="6" class="empty-msg error-msg">❌ Failed to load data. Make sure Google Sheet is publicly shared.</td></tr>';
             };
             
             document.head.appendChild(script);
@@ -172,27 +406,27 @@
             const tbody = document.getElementById('tableBody');
             
             if (todayData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">No records for today</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-msg">No records for today</td></tr>';
                 return;
             }
 
             tbody.innerHTML = todayData.map(row => `
-                <tr class="border-b border-gray-700 hover:bg-gray-700 transition">
-                    <td class="px-6 py-3 font-semibold">${row.cluster || '-'}</td>
-                    <td class="px-6 py-3">${row.name || '-'}</td>
-                    <td class="px-6 py-3">
-                        <span class="px-3 py-1 rounded-full text-xs font-semibold ${
-                            row.status === 'Present' ? 'bg-green-900 text-green-300' :
-                            row.status === 'Late' ? 'bg-yellow-900 text-yellow-300' :
-                            'bg-gray-700 text-gray-300'
+                <tr>
+                    <td>${row.cluster || '-'}</td>
+                    <td>${row.name || '-'}</td>
+                    <td>
+                        <span class="status-badge ${
+                            row.status === 'Present' ? 'status-present' :
+                            row.status === 'Late' ? 'status-late' :
+                            'status-other'
                         }">${row.status || '-'}</span>
                     </td>
-                    <td class="px-6 py-3">${row.time || '-'}</td>
-                    <td class="px-6 py-3 text-xs text-gray-400">${((row.address || '') === '') ? '-' : (row.address || '').substring(0, 30) + '...'}</td>
-                    <td class="px-6 py-3 text-xs">
+                    <td>${row.time || '-'}</td>
+                    <td style="font-size: 12px; color: #9ca3af;">${((row.address || '') === '') ? '-' : (row.address || '').substring(0, 30) + '...'}</td>
+                    <td>
                         ${row.proxyAlert === '✅ OK' || !row.proxyAlert ? 
-                            '<span class="text-green-400">✅ OK</span>' :
-                            `<span class="text-red-400">${(row.proxyAlert || '').substring(0, 25)}...</span>`
+                            '<span class="proxy-ok">✅ OK</span>' :
+                            `<span class="proxy-alert">${(row.proxyAlert || '').substring(0, 25)}...</span>`
                         }
                     </td>
                 </tr>
