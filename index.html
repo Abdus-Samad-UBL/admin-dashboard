@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>UBL Admin Dashboard</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -15,8 +14,7 @@
         body {
             background-color: #111827;
             color: #ffffff;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            line-height: 1.6;
+            font-family: Arial, sans-serif;
         }
 
         .container {
@@ -26,136 +24,98 @@
         }
 
         .header {
-            margin-bottom: 32px;
-        }
-
-        .header-top {
+            margin-bottom: 24px;
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 24px;
+            align-items: center;
         }
 
         .header h1 {
-            font-size: 36px;
-            font-weight: bold;
+            font-size: 32px;
             color: #60a5fa;
-            margin-bottom: 8px;
-        }
-
-        .header p {
-            color: #9ca3af;
-            margin-top: 8px;
         }
 
         .header-right {
             text-align: right;
         }
 
-        .header-right p {
-            font-size: 14px;
-            color: #9ca3af;
-            margin-bottom: 8px;
-        }
-
-        .header-right span {
-            color: #60a5fa;
-            font-weight: 600;
-        }
-
         .refresh-btn {
-            margin-top: 8px;
             background-color: #2563eb;
             color: white;
-            padding: 8px 16px;
+            padding: 10px 20px;
             border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
+            border-radius: 5px;
             cursor: pointer;
-            transition: background-color 0.3s;
+            font-weight: bold;
+            margin-top: 10px;
         }
 
         .refresh-btn:hover {
             background-color: #1d4ed8;
         }
 
-        .loading-msg {
-            background-color: #1e3a8a;
-            border: 1px solid #3b82f6;
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 32px;
-            color: #93c5fd;
-        }
-
-        .loading-msg.hidden {
-            display: none;
-        }
-
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 16px;
-            margin-bottom: 32px;
+            margin: 24px 0;
         }
 
         .stat-card {
-            padding: 24px;
+            padding: 20px;
             border-radius: 8px;
-            background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+            text-align: center;
         }
 
-        .stat-card.present {
-            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        .stat-total {
+            background: linear-gradient(135deg, #1e40af, #1e3a8a);
         }
 
-        .stat-card.late {
-            background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+        .stat-present {
+            background: linear-gradient(135deg, #059669, #047857);
         }
 
-        .stat-card.sick {
-            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+        .stat-late {
+            background: linear-gradient(135deg, #d97706, #b45309);
         }
 
-        .stat-card.annual {
-            background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+        .stat-sick {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
         }
 
-        .stat-card.proxy {
-            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+        .stat-annual {
+            background: linear-gradient(135deg, #4f46e5, #4338ca);
+        }
+
+        .stat-proxy {
+            background: linear-gradient(135deg, #dc2626, #991b1b);
         }
 
         .stat-label {
-            font-size: 14px;
+            font-size: 12px;
             opacity: 0.8;
             margin-bottom: 8px;
         }
 
         .stat-value {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: bold;
         }
 
-        .table-wrapper {
+        .table-container {
             background-color: #1f2937;
             border: 1px solid #374151;
             border-radius: 8px;
+            margin-top: 24px;
             overflow: hidden;
-            margin-bottom: 32px;
         }
 
         .table-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding: 24px;
+            padding: 16px 24px;
             border-bottom: 1px solid #374151;
-        }
-
-        .table-header h2 {
-            font-size: 20px;
-            font-weight: bold;
+            background-color: #111827;
         }
 
         .export-btn {
@@ -163,67 +123,56 @@
             color: white;
             padding: 8px 16px;
             border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
+            border-radius: 5px;
             cursor: pointer;
-            transition: background-color 0.3s;
+            font-weight: bold;
         }
 
         .export-btn:hover {
             background-color: #15803d;
         }
 
-        .table-scroll {
-            overflow-x: auto;
-        }
-
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 14px;
-        }
-
-        thead {
-            background-color: #374151;
-            border-bottom: 1px solid #4b5563;
         }
 
         th {
-            padding: 12px 24px;
+            background-color: #374151;
+            padding: 12px;
             text-align: left;
-            font-weight: 600;
+            font-weight: bold;
+            border-bottom: 1px solid #4b5563;
         }
 
         td {
-            padding: 12px 24px;
+            padding: 12px;
             border-bottom: 1px solid #374151;
         }
 
-        tbody tr:hover {
-            background-color: #374151;
-            transition: background-color 0.2s;
+        tr:hover {
+            background-color: #273345;
         }
 
         .status-badge {
             display: inline-block;
-            padding: 4px 12px;
-            border-radius: 16px;
+            padding: 4px 10px;
+            border-radius: 4px;
             font-size: 12px;
-            font-weight: 600;
+            font-weight: bold;
         }
 
-        .status-present {
+        .badge-present {
             background-color: #064e3b;
             color: #86efac;
         }
 
-        .status-late {
+        .badge-late {
             background-color: #78350f;
             color: #fef08a;
         }
 
-        .status-other {
+        .badge-other {
             background-color: #374151;
             color: #d1d5db;
         }
@@ -236,152 +185,170 @@
             color: #f87171;
         }
 
-        .empty-msg {
+        .empty {
             text-align: center;
-            padding: 32px;
+            padding: 40px;
             color: #9ca3af;
         }
 
-        .error-msg {
-            color: #f87171;
+        .error {
+            background-color: #7f1d1d;
+            color: #fecaca;
+            padding: 16px;
+            border-radius: 5px;
+            margin: 16px 0;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #60a5fa;
+        }
+
+        .info {
+            background-color: #1e40af;
+            color: #bfdbfe;
+            padding: 16px;
+            border-radius: 5px;
+            margin: 16px 0;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
         <div class="header">
-            <div class="header-top">
-                <div>
-                    <h1>📊 Admin Dashboard</h1>
-                    <p>L&D Department Attendance Monitor</p>
+            <div>
+                <h1>📊 Admin Dashboard</h1>
+                <p style="color: #9ca3af;">L&D Department Attendance Monitor</p>
+            </div>
+            <div class="header-right">
+                <p style="font-size: 14px; color: #9ca3af;">Last updated: <span id="lastUpdated">--:--:--</span></p>
+                <button class="refresh-btn" onclick="loadData()">🔄 Refresh Now</button>
+            </div>
+        </div>
+
+        <div id="infoMsg" class="info" style="display: none;"></div>
+        <div id="errorMsg" class="error" style="display: none;"></div>
+
+        <div id="loadingMsg" class="loading">
+            ⏳ Loading attendance data from Google Sheets...
+        </div>
+
+        <div id="statsContainer" style="display: none;">
+            <div class="stats-grid">
+                <div class="stat-card stat-total">
+                    <div class="stat-label">Total Submitted</div>
+                    <div class="stat-value" id="stat-total">0</div>
                 </div>
-                <div class="header-right">
-                    <p>Last updated: <span id="lastUpdated">Loading...</span></p>
-                    <button class="refresh-btn" onclick="fetchDataFromSheets()">🔄 Refresh</button>
+                <div class="stat-card stat-present">
+                    <div class="stat-label">Present</div>
+                    <div class="stat-value" id="stat-present">0</div>
+                </div>
+                <div class="stat-card stat-late">
+                    <div class="stat-label">Late</div>
+                    <div class="stat-value" id="stat-late">0</div>
+                </div>
+                <div class="stat-card stat-sick">
+                    <div class="stat-label">Sick/Personal</div>
+                    <div class="stat-value" id="stat-sick">0</div>
+                </div>
+                <div class="stat-card stat-annual">
+                    <div class="stat-label">Annual Leave</div>
+                    <div class="stat-value" id="stat-annual">0</div>
+                </div>
+                <div class="stat-card stat-proxy">
+                    <div class="stat-label">Proxy Alerts</div>
+                    <div class="stat-value" id="stat-proxy">0</div>
                 </div>
             </div>
-        </div>
 
-        <!-- Loading Message -->
-        <div id="loadingMsg" class="loading-msg">
-            <p>⏳ Loading data from Google Sheets... Please wait.</p>
-            <p style="font-size: 12px; margin-top: 8px;">If this takes more than 10 seconds, the sheet may not be publicly shared.</p>
-        </div>
-
-        <!-- Stats Grid -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-label">Total Submitted</div>
-                <div class="stat-value" id="stat-total">0</div>
-            </div>
-            <div class="stat-card present">
-                <div class="stat-label">Present</div>
-                <div class="stat-value" id="stat-present">0</div>
-            </div>
-            <div class="stat-card late">
-                <div class="stat-label">Late</div>
-                <div class="stat-value" id="stat-late">0</div>
-            </div>
-            <div class="stat-card sick">
-                <div class="stat-label">Sick/Personal</div>
-                <div class="stat-value" id="stat-sick">0</div>
-            </div>
-            <div class="stat-card annual">
-                <div class="stat-label">Annual Leave</div>
-                <div class="stat-value" id="stat-annual">0</div>
-            </div>
-            <div class="stat-card proxy">
-                <div class="stat-label">Proxy Alerts</div>
-                <div class="stat-value" id="stat-proxies">0</div>
-            </div>
-        </div>
-
-        <!-- Table -->
-        <div class="table-wrapper">
-            <div class="table-header">
-                <h2>Today's Attendance Records</h2>
-                <button class="export-btn" onclick="exportCSV()">📥 Export CSV</button>
-            </div>
-            
-            <div class="table-scroll">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Cluster</th>
-                            <th>Name</th>
-                            <th>Status</th>
-                            <th>Time</th>
-                            <th>Location</th>
-                            <th>Proxy Alert</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody">
-                        <tr>
-                            <td colspan="6" class="empty-msg">Loading data...</td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="table-container">
+                <div class="table-header">
+                    <h2 style="margin: 0;">Today's Attendance Records</h2>
+                    <button class="export-btn" onclick="exportData()">📥 Export CSV</button>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Cluster</th>
+                                <th>Name</th>
+                                <th>Status</th>
+                                <th>Time</th>
+                                <th>Location</th>
+                                <th>Proxy Alert</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr>
+                                <td colspan="6" class="empty">No data loaded yet</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1JbfXksSCH__tcFtj-If93ka3lUxZcfzupobcVlleOAA/gviz/tq?tqx=out:json&gid=0&callback=processData';
         let allData = [];
 
-        function processData(response) {
-            console.log('Response received:', response);
-            
+        async function loadData() {
+            console.log('Loading data...');
+            document.getElementById('loadingMsg').style.display = 'block';
+            document.getElementById('statsContainer').style.display = 'none';
+            document.getElementById('errorMsg').style.display = 'none';
+            document.getElementById('infoMsg').style.display = 'none';
+
             try {
-                if (!response.table || !response.table.rows) {
-                    throw new Error('No data in response');
+                // Using SheetDB API to convert Google Sheets to JSON
+                const sheetId = '1JbfXksSCH__tcFtj-If93ka3lUxZcfzupobcVlleOAA';
+                const url = `https://sheetdb.io/api/v1/d0ca23fc-d04a-4b5a-9798-c90cb4a4e394`;
+
+                console.log('Fetching from:', url);
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error('HTTP error, status: ' + response.status);
                 }
 
-                allData = response.table.rows.map(row => ({
-                    cluster: row.c[0]?.v || '',
-                    name: row.c[1]?.v || '',
-                    status: row.c[2]?.v || '',
-                    date: row.c[3]?.v || '',
-                    time: row.c[4]?.v || '',
-                    latitude: row.c[5]?.v || '',
-                    longitude: row.c[6]?.v || '',
-                    address: row.c[7]?.v || '',
-                    notes: row.c[8]?.v || '',
-                    proxyAlert: row.c[9]?.v || '✅ OK'
+                const jsonData = await response.json();
+                console.log('Raw response:', jsonData);
+
+                if (!Array.isArray(jsonData)) {
+                    throw new Error('Response is not an array');
+                }
+
+                allData = jsonData.map(row => ({
+                    cluster: row['Cluster'] || '',
+                    name: row['Name'] || '',
+                    status: row['Status'] || '',
+                    date: row['Date'] || '',
+                    time: row['Time'] || '',
+                    latitude: row['Latitude'] || '',
+                    longitude: row['Longitude'] || '',
+                    address: row['Address'] || '',
+                    notes: row['Notes'] || '',
+                    proxyAlert: row['Proxy Alert'] || '✅ OK'
                 }));
 
-                console.log('Total rows loaded:', allData.length);
-                document.getElementById('loadingMsg').classList.add('hidden');
-                document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
-                updateDashboard();
+                console.log('Parsed data:', allData.length, 'records');
+                updateUI();
             } catch (error) {
-                console.error('Error processing data:', error);
-                document.getElementById('tableBody').innerHTML = '<tr><td colspan="6" class="empty-msg error-msg">Error: ' + error.message + '</td></tr>';
+                console.error('Error:', error);
+                document.getElementById('errorMsg').textContent = '❌ Error: ' + error.message;
+                document.getElementById('errorMsg').style.display = 'block';
+                document.getElementById('loadingMsg').style.display = 'none';
             }
         }
 
-        function fetchDataFromSheets() {
-            console.log('Fetching data from Google Sheets...');
-            
-            // Remove old script if exists
-            const oldScript = document.querySelector('script[src*="gviz/tq"]');
-            if (oldScript) oldScript.remove();
-            
-            // Create new script
-            const script = document.createElement('script');
-            script.src = SHEET_URL;
-            script.onerror = function() {
-                console.error('Failed to load script');
-                document.getElementById('tableBody').innerHTML = '<tr><td colspan="6" class="empty-msg error-msg">❌ Failed to load data. Make sure Google Sheet is publicly shared.</td></tr>';
-            };
-            
-            document.head.appendChild(script);
-        }
-
-        function updateDashboard() {
+        function updateUI() {
             const today = new Date().toLocaleDateString('en-US');
-            const todayData = allData.filter(row => row.date === today);
+            const todayData = allData.filter(r => r.date === today);
+
+            document.getElementById('loadingMsg').style.display = 'none';
+            document.getElementById('statsContainer').style.display = 'block';
+            document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
 
             const stats = {
                 total: todayData.length,
@@ -389,7 +356,7 @@
                 late: todayData.filter(r => r.status === 'Late').length,
                 sick: todayData.filter(r => r.status && r.status.includes('Personal/Sick')).length,
                 annual: todayData.filter(r => r.status === 'Annual Leave').length,
-                proxies: todayData.filter(r => r.proxyAlert && r.proxyAlert !== '✅ OK').length
+                proxy: todayData.filter(r => r.proxyAlert && r.proxyAlert !== '✅ OK').length
             };
 
             document.getElementById('stat-total').textContent = stats.total;
@@ -397,75 +364,81 @@
             document.getElementById('stat-late').textContent = stats.late;
             document.getElementById('stat-sick').textContent = stats.sick;
             document.getElementById('stat-annual').textContent = stats.annual;
-            document.getElementById('stat-proxies').textContent = stats.proxies;
+            document.getElementById('stat-proxy').textContent = stats.proxy;
 
             updateTable(todayData);
         }
 
-        function updateTable(todayData) {
+        function updateTable(data) {
             const tbody = document.getElementById('tableBody');
             
-            if (todayData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="empty-msg">No records for today</td></tr>';
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty">No attendance records for today</td></tr>';
                 return;
             }
 
-            tbody.innerHTML = todayData.map(row => `
+            tbody.innerHTML = data.map(r => `
                 <tr>
-                    <td>${row.cluster || '-'}</td>
-                    <td>${row.name || '-'}</td>
+                    <td>${r.cluster || '-'}</td>
+                    <td>${r.name || '-'}</td>
                     <td>
                         <span class="status-badge ${
-                            row.status === 'Present' ? 'status-present' :
-                            row.status === 'Late' ? 'status-late' :
-                            'status-other'
-                        }">${row.status || '-'}</span>
+                            r.status === 'Present' ? 'badge-present' :
+                            r.status === 'Late' ? 'badge-late' :
+                            'badge-other'
+                        }">${r.status || '-'}</span>
                     </td>
-                    <td>${row.time || '-'}</td>
-                    <td style="font-size: 12px; color: #9ca3af;">${((row.address || '') === '') ? '-' : (row.address || '').substring(0, 30) + '...'}</td>
-                    <td>
-                        ${row.proxyAlert === '✅ OK' || !row.proxyAlert ? 
-                            '<span class="proxy-ok">✅ OK</span>' :
-                            `<span class="proxy-alert">${(row.proxyAlert || '').substring(0, 25)}...</span>`
-                        }
-                    </td>
+                    <td>${r.time || '-'}</td>
+                    <td style="font-size: 12px; color: #9ca3af;">${(r.address || '').substring(0, 40)}</td>
+                    <td>${
+                        r.proxyAlert === '✅ OK' ? 
+                        '<span class="proxy-ok">✅ OK</span>' :
+                        '<span class="proxy-alert">' + (r.proxyAlert || '').substring(0, 20) + '...</span>'
+                    }</td>
                 </tr>
             `).join('');
         }
 
-        function exportCSV() {
+        function exportData() {
             const today = new Date().toLocaleDateString('en-US');
-            const todayData = allData.filter(row => row.date === today);
+            const todayData = allData.filter(r => r.date === today);
 
             if (todayData.length === 0) {
-                alert('No data to export for today');
+                alert('No data to export');
                 return;
             }
 
             const headers = ['Cluster', 'Name', 'Status', 'Date', 'Time', 'Latitude', 'Longitude', 'Address', 'Notes', 'Proxy Alert'];
-            const rows = todayData.map(r => [
-                r.cluster, r.name, r.status, r.date, r.time, 
-                r.latitude, r.longitude, r.address, r.notes, r.proxyAlert
-            ]);
-            
-            const csv = [
-                headers.join(','),
-                ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-            ].join('\n');
-            
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
+            const csv = [headers.join(',')];
+
+            todayData.forEach(r => {
+                csv.push([
+                    r.cluster,
+                    r.name,
+                    r.status,
+                    r.date,
+                    r.time,
+                    r.latitude,
+                    r.longitude,
+                    r.address,
+                    r.notes,
+                    r.proxyAlert
+                ].map(v => `"${v}"`).join(','));
+            });
+
+            const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
             a.download = `attendance_${today}.csv`;
             a.click();
         }
 
-        // Load data on page load
-        window.addEventListener('load', fetchDataFromSheets);
+        // Load on page load
+        window.addEventListener('load', loadData);
         
-        // Refresh every 30 seconds
-        setInterval(fetchDataFromSheets, 30000);
+        // Auto refresh every 30 seconds
+        setInterval(loadData, 30000);
     </script>
 </body>
 </html>
