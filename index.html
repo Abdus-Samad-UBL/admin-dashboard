@@ -205,9 +205,9 @@
             color: #60a5fa;
         }
 
-        .info {
-            background-color: #1e40af;
-            color: #bfdbfe;
+        .success {
+            background-color: #064e3b;
+            color: #86efac;
             padding: 16px;
             border-radius: 5px;
             margin: 16px 0;
@@ -227,11 +227,11 @@
             </div>
         </div>
 
-        <div id="infoMsg" class="info" style="display: none;"></div>
+        <div id="successMsg" class="success" style="display: none;"></div>
         <div id="errorMsg" class="error" style="display: none;"></div>
 
         <div id="loadingMsg" class="loading">
-            ⏳ Loading attendance data from Google Sheets...
+            ⏳ Loading attendance data...
         </div>
 
         <div id="statsContainer" style="display: none;">
@@ -291,29 +291,29 @@
     </div>
 
     <script>
+        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyjgb7lTC1YaON02CXgddYYLXZyUgZcrsa7gPn3-SOqFQSIhXFoB5M3slgrATyVM67F/exec';
         let allData = [];
 
         async function loadData() {
-            console.log('Loading data...');
+            console.log('Loading data from Apps Script...');
             document.getElementById('loadingMsg').style.display = 'block';
             document.getElementById('statsContainer').style.display = 'none';
             document.getElementById('errorMsg').style.display = 'none';
-            document.getElementById('infoMsg').style.display = 'none';
+            document.getElementById('successMsg').style.display = 'none';
 
             try {
-                // Using SheetDB API to convert Google Sheets to JSON
-                const sheetId = '1JbfXksSCH__tcFtj-If93ka3lUxZcfzupobcVlleOAA';
-                const url = `https://sheetdb.io/api/v1/d0ca23fc-d04a-4b5a-9798-c90cb4a4e394`;
-
-                console.log('Fetching from:', url);
-                const response = await fetch(url);
+                const response = await fetch(APPS_SCRIPT_URL);
                 
                 if (!response.ok) {
                     throw new Error('HTTP error, status: ' + response.status);
                 }
 
                 const jsonData = await response.json();
-                console.log('Raw response:', jsonData);
+                console.log('Response:', jsonData);
+
+                if (jsonData.error) {
+                    throw new Error(jsonData.error);
+                }
 
                 if (!Array.isArray(jsonData)) {
                     throw new Error('Response is not an array');
@@ -330,7 +330,7 @@
                     address: row['Address'] || '',
                     notes: row['Notes'] || '',
                     proxyAlert: row['Proxy Alert'] || '✅ OK'
-                }));
+                })).filter(row => row.name); // Filter out empty rows
 
                 console.log('Parsed data:', allData.length, 'records');
                 updateUI();
@@ -349,6 +349,8 @@
             document.getElementById('loadingMsg').style.display = 'none';
             document.getElementById('statsContainer').style.display = 'block';
             document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
+            document.getElementById('successMsg').textContent = '✅ Data loaded successfully! (' + allData.length + ' total records)';
+            document.getElementById('successMsg').style.display = 'block';
 
             const stats = {
                 total: todayData.length,
@@ -404,7 +406,7 @@
             const todayData = allData.filter(r => r.date === today);
 
             if (todayData.length === 0) {
-                alert('No data to export');
+                alert('No data to export for today');
                 return;
             }
 
