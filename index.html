@@ -319,18 +319,34 @@
                     throw new Error('Response is not an array');
                 }
 
-                allData = jsonData.map(row => ({
-                    cluster: row['Cluster'] || '',
-                    name: row['Name'] || '',
-                    status: row['Status'] || '',
-                    date: row['Date'] || '',
-                    time: row['Time'] || '',
-                    latitude: row['Latitude'] || '',
-                    longitude: row['Longitude'] || '',
-                    address: row['Address'] || '',
-                    notes: row['Notes'] || '',
-                    proxyAlert: row['Proxy Alert'] || '✅ OK'
-                })).filter(row => row.name); // Filter out empty rows
+                allData = jsonData.map(row => {
+                    // Parse date and time - they might be combined
+                    let dateStr = row['Date'] || '';
+                    let timeStr = row['Time'] || '';
+                    
+                    // If time is in the date field, split them
+                    if (dateStr && dateStr.match(/\d{1,2}\/\d{1,2}\/\d{4}\d/)) {
+                        // Format: "11/30/20251:25:14 AM"
+                        const match = dateStr.match(/^(\d{1,2}\/\d{1,2}\/\d{4})(.*)/);
+                        if (match) {
+                            dateStr = match[1];
+                            if (match[2] && !timeStr) timeStr = match[2];
+                        }
+                    }
+                    
+                    return {
+                        cluster: row['Cluster'] || '',
+                        name: row['Name'] || '',
+                        status: row['Status'] || '',
+                        date: dateStr,
+                        time: timeStr,
+                        latitude: row['Latitude'] || '',
+                        longitude: row['Longitude'] || '',
+                        address: row['Address'] || '',
+                        notes: row['Notes'] || '',
+                        proxyAlert: row['Proxy Alert'] || '✅ OK'
+                    };
+                }).filter(row => row.name); // Filter out empty rows
 
                 console.log('Parsed data:', allData.length, 'records');
                 updateUI();
@@ -344,12 +360,27 @@
 
         function updateUI() {
             const today = new Date().toLocaleDateString('en-US');
-            const todayData = allData.filter(r => r.date === today);
+            console.log('Today:', today);
+            console.log('All data:', allData);
+            
+            // Filter data - try multiple date formats
+            let todayData = allData.filter(r => {
+                if (!r.date) return false;
+                // Try exact match
+                if (r.date === today) return true;
+                // Try removing time if present
+                if (r.date.split(' ')[0] === today) return true;
+                // Try alternate format
+                const dateStr = r.date.toString().split('T')[0]; // Remove time
+                return dateStr === today;
+            });
+            
+            console.log('Today data:', todayData.length, 'records');
 
             document.getElementById('loadingMsg').style.display = 'none';
             document.getElementById('statsContainer').style.display = 'block';
             document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString();
-            document.getElementById('successMsg').textContent = '✅ Data loaded successfully! (' + allData.length + ' total records)';
+            document.getElementById('successMsg').textContent = '✅ Data loaded! Today: ' + todayData.length + ' records (Total: ' + allData.length + ')';
             document.getElementById('successMsg').style.display = 'block';
 
             const stats = {
