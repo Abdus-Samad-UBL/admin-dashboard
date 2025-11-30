@@ -359,20 +359,32 @@
         }
 
         function updateUI() {
-            const today = new Date().toLocaleDateString('en-US');
+            const now = new Date();
+            const today = now.toLocaleDateString('en-US');
             console.log('Today:', today);
             console.log('All data:', allData);
             
-            // Filter data - try multiple date formats
+            // Filter data - handle ISO date format from Google Sheets
             let todayData = allData.filter(r => {
                 if (!r.date) return false;
-                // Try exact match
-                if (r.date === today) return true;
-                // Try removing time if present
-                if (r.date.split(' ')[0] === today) return true;
-                // Try alternate format
-                const dateStr = r.date.toString().split('T')[0]; // Remove time
-                return dateStr === today;
+                
+                // Parse the date from ISO format
+                let recordDate;
+                try {
+                    if (r.date.includes('T')) {
+                        // ISO format: "2025-11-11T19:00:00.000Z"
+                        recordDate = new Date(r.date);
+                    } else {
+                        // Regular format: "11/30/2025"
+                        recordDate = new Date(r.date);
+                    }
+                    
+                    const recordDateStr = recordDate.toLocaleDateString('en-US');
+                    return recordDateStr === today;
+                } catch (e) {
+                    console.error('Date parse error:', e, r.date);
+                    return false;
+                }
             });
             
             console.log('Today data:', todayData.length, 'records');
